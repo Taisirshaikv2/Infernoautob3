@@ -94,6 +94,7 @@ def validate_cc(cc):
         if len(parts) != 4:
             return False, "Invalid format"
         num, mm, yy, cvc = parts
+        # Clean the card number but keep spaces and dashes as valid separators
         num = ''.join(filter(str.isdigit, num))
         if not num or len(num) < 13 or len(num) > 19:
             return False, "Invalid card"
@@ -155,18 +156,6 @@ def find_between(data, first, last):
         return data[start:end]
     except:
         return None
-
-def extract_reason(response_text):
-    """Extract reason from response text"""
-    try:
-        if "Reason: " in response_text:
-            return response_text.split("Reason: ")[1].strip()
-        elif "Declined: " in response_text:
-            return response_text.split("Declined: ")[1].strip()
-        else:
-            return response_text
-    except:
-        return response_text
 
 # ============================================================
 # SMART BRAINTREE CHECKER WITH AUTO-DETECTION
@@ -703,12 +692,11 @@ async def test_card_on_site(domain, cc):
                     "response": result['response']
                 }
             else:
-                # Extract the reason from the response
-                reason = extract_reason(result['response'])
+                # Return the full response, not just the reason
                 return {
                     "Status": "declined",
                     "success": False,
-                    "response": reason
+                    "response": result['response']
                 }
     except Exception as e:
         return {
